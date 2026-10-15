@@ -58,7 +58,7 @@ A single trip can be noisy. Over weeks and months, the trend shows you how your 
   <tr>
     <td><b>Full history.</b> Every trip grouped by month with its efficiency and notes. Tap to edit, swipe to delete.</td>
     <td><b>Set up in one screen.</b> Name your car, enter its usable capacity when new, and start watching.</td>
-    <td><b>Your data, your phone.</b> Everything stays on the device. Export or import a CSV whenever you like.</td>
+    <td><b>Your data, your phone.</b> Everything stays on the device. Export or import a CSV whenever you like, or wipe it all and start over.</td>
   </tr>
 </table>
 
@@ -100,8 +100,10 @@ pnpm android          # or run on an Android emulator / USB-connected phone
 GitHub Actions builds a signed APK for every pull request (downloadable from the run's artifacts) and publishes a release for every version tag:
 
 ```bash
-git tag v1.0.0 && git push origin v1.0.0
+git tag v0.1.0 && git push origin v0.1.0
 ```
+
+**Versioning.** The release tag is the version: `v0.2.0` becomes version `0.2.0`. Builds from pull requests are named after `version` in `app.json` plus the run number, e.g. `0.1.0-build.7`. Android's internal build number (`versionCode`) is the workflow run number, which goes up on every run, so any newer APK installs over an older one.
 
 The workflow signs with a release key stored in the repository secrets `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS` and `ANDROID_KEY_PASSWORD`. Keep a backup of that keystore: Android only accepts updates signed with the same key, and reinstalling with a different one wipes your on-device logs.
 
