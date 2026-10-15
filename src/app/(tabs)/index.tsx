@@ -8,8 +8,8 @@ import { AddLogFab } from '@/components/fab';
 import { LogRow } from '@/components/log-row';
 import { Logo } from '@/components/logo';
 import { ChartLegend, SohChart } from '@/components/soh-chart';
-import { Card, Screen, SectionTitle, useIsWide } from '@/components/ui';
-import { Colors, MaxContentWidth, MaxWideWidth, Radius, Spacing } from '@/constants/theme';
+import { Card, Columns, Screen, SectionTitle, useIsWide } from '@/components/ui';
+import { Colors, Radius, Spacing } from '@/constants/theme';
 import {
   averageEfficiency,
   HEADLINE_WINDOW_DAYS,
@@ -107,7 +107,7 @@ export default function Dashboard() {
 
   return (
     <View style={{ flex: 1 }}>
-      <Screen maxWidth={wide ? MaxWideWidth : MaxContentWidth}>
+      <Screen>
         <View style={styles.header}>
           <Logo size={34} />
           <View>
@@ -116,29 +116,30 @@ export default function Dashboard() {
           </View>
         </View>
 
-        {wide ? (
-          <View style={styles.columns}>
-            <View style={styles.column}>
-              {hero}
-              {logs.length > 0 && recent}
-            </View>
-            {logs.length > 0 && (
-              <View style={[styles.column, { flex: 1.25 }]}>
-                {tiles}
-                {chart}
-              </View>
-            )}
-          </View>
-        ) : (
-          <>
-            {hero}
-            {logs.length > 0 && (
+        {logs.length === 0 ? (
+          hero
+        ) : wide ? (
+          <Columns
+            left={
+              <>
+                {hero}
+                {recent}
+              </>
+            }
+            right={
               <>
                 {tiles}
                 {chart}
-                {recent}
               </>
-            )}
+            }
+            rightFlex={1.25}
+          />
+        ) : (
+          <>
+            {hero}
+            {tiles}
+            {chart}
+            {recent}
           </>
         )}
       </Screen>
@@ -251,8 +252,6 @@ const styles = StyleSheet.create({
   emptyBody: { color: Colors.textSecondary, fontSize: 14, lineHeight: 21, textAlign: 'center' },
   emptyHint: { flexDirection: 'row', alignItems: 'center', gap: Spacing.xs, marginTop: Spacing.sm },
   emptyHintText: { color: Colors.accent, fontSize: 14, fontWeight: '700' },
-  columns: { flexDirection: 'row', gap: Spacing.lg, alignItems: 'flex-start' },
-  column: { flex: 1, gap: Spacing.lg },
   tiles: { flexDirection: 'row', gap: Spacing.sm },
   tile: {
     flex: 1,

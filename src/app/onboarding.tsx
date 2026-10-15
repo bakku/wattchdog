@@ -4,14 +4,16 @@ import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } fr
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Logo } from '@/components/logo';
-import { Button, Field } from '@/components/ui';
-import { Colors, MaxContentWidth, Spacing } from '@/constants/theme';
+import { Button, Columns, Field, useContentWidth, useIsWide } from '@/components/ui';
+import { Colors, Spacing } from '@/constants/theme';
 import { parseNumber } from '@/lib/battery';
 import { useStore } from '@/state/store';
 
 export default function Onboarding() {
   const { saveSettings } = useStore();
   const insets = useSafeAreaInsets();
+  const wide = useIsWide();
+  const maxWidth = useContentWidth();
   const [carName, setCarName] = useState('');
   const [nominal, setNominal] = useState('');
 
@@ -27,35 +29,48 @@ export default function Onboarding() {
       <ScrollView
         contentContainerStyle={[
           styles.content,
-          { paddingTop: insets.top + Spacing.xxl * 1.5, paddingBottom: insets.bottom + Spacing.xl },
+          {
+            maxWidth,
+            paddingTop: insets.top + (wide ? Spacing.xl : Spacing.xxl * 1.5),
+            paddingBottom: insets.bottom + Spacing.xl,
+            paddingLeft: insets.left + Spacing.xl,
+            paddingRight: insets.right + Spacing.xl,
+          },
         ]}
         keyboardShouldPersistTaps="handled">
-        <View style={styles.hero}>
-          <Logo size={96} />
-          <Text style={styles.title}>Wattchdog</Text>
-          <Text style={styles.tagline}>Keeps an eye on your EV’s battery health, one trip at a time.</Text>
-        </View>
+        <Columns
+          left={
+            <View style={[styles.hero, wide && styles.heroWide]}>
+              <Logo size={96} />
+              <Text style={styles.title}>Wattchdog</Text>
+              <Text style={styles.tagline}>Keeps an eye on your EV’s battery health, one trip at a time.</Text>
+            </View>
+          }
+          right={
+            <>
+              <View style={{ gap: Spacing.lg }}>
+                <Field label="Car name" text value={carName} onChangeText={setCarName} placeholder="My EV" />
+                <Field
+                  label="Nominal usable capacity"
+                  unit="kWh"
+                  value={nominal}
+                  onChangeText={setNominal}
+                  keyboardType="decimal-pad"
+                  placeholder="77"
+                />
+                <Text style={styles.hint}>
+                  The usable (net) capacity your car had when new. Check the spec sheet: e.g. 77 kWh for a VW ID.4 Pro.
+                </Text>
+              </View>
 
-        <View style={{ gap: Spacing.lg }}>
-          <Field label="Car name" text value={carName} onChangeText={setCarName} placeholder="My EV" />
-          <Field
-            label="Nominal usable capacity"
-            unit="kWh"
-            value={nominal}
-            onChangeText={setNominal}
-            keyboardType="decimal-pad"
-            placeholder="77"
-          />
-          <Text style={styles.hint}>
-            The usable (net) capacity your car had when new. Check the spec sheet: e.g. 77 kWh for a VW ID.4 Pro.
-          </Text>
-        </View>
-
-        <Button
-          label="Start watching"
-          icon="arrow-forward"
-          disabled={!valid}
-          onPress={() => saveSettings({ carName: carName.trim() || 'My EV', nominalKwh: nominalValue })}
+              <Button
+                label="Start watching"
+                icon="arrow-forward"
+                disabled={!valid}
+                onPress={() => saveSettings({ carName: carName.trim() || 'My EV', nominalKwh: nominalValue })}
+              />
+            </>
+          }
         />
       </ScrollView>
     </KeyboardAvoidingView>
@@ -66,13 +81,12 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: Colors.background },
   content: {
     flexGrow: 1,
-    paddingHorizontal: Spacing.xl,
     gap: Spacing.xxl,
     width: '100%',
-    maxWidth: MaxContentWidth,
     alignSelf: 'center',
   },
   hero: { alignItems: 'center', gap: Spacing.md },
+  heroWide: { paddingTop: Spacing.xxl },
   title: { color: Colors.text, fontSize: 36, fontWeight: '800', letterSpacing: -1 },
   tagline: { color: Colors.textSecondary, fontSize: 16, lineHeight: 23, textAlign: 'center' },
   hint: { color: Colors.textMuted, fontSize: 13, lineHeight: 19 },
