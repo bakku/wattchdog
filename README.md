@@ -95,13 +95,19 @@ pnpm android          # or run on an Android emulator / USB-connected phone
 
 ### Install on your phone
 
-Wattchdog is a personal app. Build it once and install it directly, with no app store needed:
+**Android:** grab the APK from the [latest release](https://github.com/bakku/wattchdog/releases/latest), open it on your phone, and allow the install. New versions install right over the old one and keep your logs.
+
+GitHub Actions builds a signed APK for every pull request (downloadable from the run's artifacts) and publishes a release for every version tag:
 
 ```bash
-# Android: a standalone APK you can sideload
-npx eas-cli@latest build --platform android --profile preview
+git tag v1.0.0 && git push origin v1.0.0
+```
 
-# iOS: needs an Apple Developer account for ad-hoc / TestFlight installs
+The workflow signs with a release key stored in the repository secrets `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS` and `ANDROID_KEY_PASSWORD`. Keep a backup of that keystore: Android only accepts updates signed with the same key, and reinstalling with a different one wipes your on-device logs.
+
+**iOS:** needs an Apple Developer account. Build it with EAS:
+
+```bash
 npx eas-cli@latest build --platform ios --profile preview
 ```
 
