@@ -10,7 +10,7 @@ Expo ships breaking changes every SDK release. APIs you remember are likely rena
 
 ## Commands
 
-This project uses **pnpm** (pinned with Node in `mise.toml`; `node-linker=hoisted` in `.npmrc` is required by Expo).
+This project uses **pnpm** (pinned with Node in `mise.toml`; `nodeLinker: hoisted` in `pnpm-workspace.yaml` is required by Expo; pnpm 12 ignores `.npmrc` for this).
 
 ```bash
 pnpm expo install <package>  # ALWAYS use instead of pnpm add — resolves SDK-compatible versions
