@@ -1,8 +1,9 @@
+import Constants from 'expo-constants';
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { Logo } from '@/components/logo';
-import { Button, Callout, Card, Field, Screen, SectionTitle } from '@/components/ui';
+import { Button, Callout, Card, Columns, Field, Screen, SectionTitle } from '@/components/ui';
 import { Colors, Spacing } from '@/constants/theme';
 import { LOW_CONFIDENCE_PERCENT, parseNumber, type LogInput } from '@/lib/battery';
 import { pickCsv, shareCsv } from '@/lib/backup';
@@ -13,11 +14,12 @@ const sameLog = (a: LogInput, b: LogInput) =>
   a.date === b.date && a.kwh === b.kwh && a.km === b.km && a.percent === b.percent;
 
 export default function SettingsScreen() {
-  const { settings, saveSettings, logs, importLogs } = useStore();
+  const { settings, saveSettings, logs, importLogs, clearAll } = useStore();
   const [carName, setCarName] = useState(settings!.carName);
   const [nominal, setNominal] = useState(String(settings!.nominalKwh));
   const [saved, setSaved] = useState(false);
   const [message, setMessage] = useState<{ tone: 'info' | 'warning'; text: string } | null>(null);
+  const [confirmClear, setConfirmClear] = useState(false);
 
   const nominalValue = parseNumber(nominal);
   const nominalError = nominalValue > 0 && nominalValue < 500 ? undefined : 'Enter the usable capacity in kWh';
@@ -48,14 +50,13 @@ export default function SettingsScreen() {
     setMessage({ tone: errors.length > 0 ? 'warning' : 'info', text: parts.join(' · ') });
   };
 
-  return (
-    <Screen>
-      <Text style={styles.title}>Settings</Text>
-
+  const carCard = (
+    <>
       <SectionTitle>Your car</SectionTitle>
       <Card style={{ gap: Spacing.lg }}>
         <Field
-          label="Name" text
+          label="Name"
+          text
           value={carName}
           onChangeText={(t) => {
             setCarName(t);
@@ -74,15 +75,30 @@ export default function SettingsScreen() {
           keyboardType="decimal-pad"
           error={nominal === '' ? undefined : nominalError}
         />
-        <Button label={saved ? 'Saved' : 'Save'} icon={saved ? 'checkmark' : undefined} onPress={save} disabled={!dirty || !!nominalError} />
+        <Button
+          label={saved ? 'Saved' : 'Save'}
+          icon={saved ? 'checkmark' : undefined}
+          onPress={save}
+          disabled={!dirty || !!nominalError}
+        />
       </Card>
+    </>
+  );
 
+  const backupCard = (
+    <>
       <SectionTitle>Backup</SectionTitle>
       <Card style={{ gap: Spacing.md }}>
         <Text style={styles.body}>
           Your logs live only on this phone. Export a CSV now and then and keep it somewhere safe.
         </Text>
-        <Button label="Export CSV" icon="share-outline" variant="secondary" onPress={exportCsv} disabled={logs.length === 0} />
+        <Button
+          label="Export CSV"
+          icon="share-outline"
+          variant="secondary"
+          onPress={exportCsv}
+          disabled={logs.length === 0}
+        />
         <Button label="Import CSV" icon="download-outline" variant="secondary" onPress={importCsv} />
         {message && (
           <Callout icon={message.tone === 'warning' ? 'warning' : 'checkmark-circle'} tone={message.tone}>
@@ -90,7 +106,38 @@ export default function SettingsScreen() {
           </Callout>
         )}
       </Card>
+    </>
+  );
 
+  // Inline two-step confirmation: system alerts don't exist on web.
+  const dangerCard = (
+    <>
+      <SectionTitle>Delete data</SectionTitle>
+      <Card style={{ gap: Spacing.md }}>
+        <Text style={styles.body}>Removes all {logs.length} logs and your car settings, then starts setup again.</Text>
+        {confirmClear ? (
+          <>
+            <Callout icon="warning" tone="warning">
+              This can’t be undone.{logs.length > 0 ? ' Export a CSV first if you might want the data back.' : ''}
+            </Callout>
+            <View style={styles.buttonRow}>
+              <View style={{ flex: 1 }}>
+                <Button label="Cancel" variant="secondary" onPress={() => setConfirmClear(false)} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Button label="Delete all" icon="trash" variant="danger" onPress={clearAll} />
+              </View>
+            </View>
+          </>
+        ) : (
+          <Button label="Delete all data" icon="trash-outline" variant="danger" onPress={() => setConfirmClear(true)} />
+        )}
+      </Card>
+    </>
+  );
+
+  const aboutCard = (
+    <>
       <SectionTitle>How it works</SectionTitle>
       <Card style={{ gap: Spacing.md }}>
         <Text style={styles.body}>
@@ -99,19 +146,33 @@ export default function SettingsScreen() {
         </Text>
         <Text style={styles.body}>
           The car rounds its charge level to whole percent, so short trips are noisy. Logs under{' '}
-          {LOW_CONFIDENCE_PERCENT} % used are marked low confidence and count less. Longer trips give the best
-          readings.
+          {LOW_CONFIDENCE_PERCENT} % used are marked low confidence and count less. Longer trips give the best readings.
         </Text>
         <Text style={styles.body}>
-          Use the energy figure from the trip computer, not from a wallbox: charging losses would make the battery
-          look bigger than it is.
+          Use the energy figure from the trip computer, not from a wallbox: charging losses would make the battery look
+          bigger than it is.
         </Text>
       </Card>
-
       <View style={styles.footer}>
         <Logo size={28} color={Colors.textMuted} />
-        <Text style={styles.footerText}>Wattchdog 1.0</Text>
+        <Text style={styles.footerText}>Wattchdog {Constants.expoConfig?.version}</Text>
       </View>
+    </>
+  );
+
+  return (
+    <Screen>
+      <Text style={styles.title}>Settings</Text>
+      <Columns
+        left={
+          <>
+            {carCard}
+            {backupCard}
+            {dangerCard}
+          </>
+        }
+        right={aboutCard}
+      />
     </Screen>
   );
 }
@@ -120,6 +181,7 @@ const styles = StyleSheet.create({
   title: { color: Colors.text, fontSize: 30, fontWeight: '800', letterSpacing: -0.5 },
   body: { color: Colors.textSecondary, fontSize: 14, lineHeight: 21 },
   strong: { color: Colors.text, fontWeight: '700' },
+  buttonRow: { flexDirection: 'row', gap: Spacing.md },
   footer: { alignItems: 'center', gap: Spacing.xs, marginTop: Spacing.lg },
   footerText: { color: Colors.textMuted, fontSize: 12 },
 });

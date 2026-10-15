@@ -13,6 +13,7 @@ type Store = {
   updateLog(log: Log): Promise<void>;
   deleteLog(id: string): Promise<void>;
   saveSettings(settings: Settings): Promise<void>;
+  clearAll(): Promise<void>;
 };
 
 const StoreContext = createContext<Store | null>(null);
@@ -55,6 +56,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     saveSettings: async (next) => {
       await repo?.saveSettings(next);
       setSettings(next);
+    },
+    clearAll: async () => {
+      await repo?.clearAll();
+      setLogs([]);
+      // No settings sends the app back to onboarding.
+      setSettings(null);
     },
   };
 

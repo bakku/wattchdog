@@ -8,6 +8,8 @@ export interface Repo {
   deleteLog(id: string): Promise<void>;
   getSettings(): Promise<Settings | null>;
   saveSettings(settings: Settings): Promise<void>;
+  /** Deletes every log and the car settings. */
+  clearAll(): Promise<void>;
 }
 
 export function newId(): string {

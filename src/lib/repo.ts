@@ -77,5 +77,10 @@ export async function openRepo(): Promise<Repo> {
         JSON.stringify(settings),
       );
     },
+    clearAll: () =>
+      db.withTransactionAsync(async () => {
+        await db.runAsync('DELETE FROM logs');
+        await db.runAsync('DELETE FROM settings');
+      }),
   };
 }

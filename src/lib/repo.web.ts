@@ -26,5 +26,9 @@ export async function openRepo(): Promise<Repo> {
     deleteLog: async (id) => writeLogs(logs().filter((l) => l.id !== id)),
     getSettings: async () => read<Settings | null>(SETTINGS_KEY, null),
     saveSettings: async (settings) => localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)),
+    clearAll: async () => {
+      localStorage.removeItem(LOGS_KEY);
+      localStorage.removeItem(SETTINGS_KEY);
+    },
   };
 }

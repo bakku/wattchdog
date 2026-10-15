@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Colors } from '@/constants/theme';
 import type { IconName } from '@/components/ui';
+import { useStore } from '@/state/store';
 
 function TabIcon({
   name,
@@ -22,6 +23,9 @@ function TabIcon({
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
+  const { settings } = useStore();
+  // After "Delete all data" the screens below must not render before onboarding takes over.
+  if (!settings) return null;
   return (
     <Tabs
       screenOptions={{
