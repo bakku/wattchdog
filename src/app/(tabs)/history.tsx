@@ -2,7 +2,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { AddLogFab } from '@/components/fab';
 import { LogRow } from '@/components/log-row';
-import { Screen, useIsWide } from '@/components/ui';
+import { Screen } from '@/components/ui';
 import { Colors, Radius, Spacing } from '@/constants/theme';
 import type { Log } from '@/lib/battery';
 import { formatMonth } from '@/lib/format';
@@ -20,16 +20,9 @@ function groupByMonth(logs: Log[]): { month: number; logs: Log[] }[] {
   return groups;
 }
 
-function pairsOf<T>(items: T[]): T[][] {
-  const pairs: T[][] = [];
-  for (let i = 0; i < items.length; i += 2) pairs.push(items.slice(i, i + 2));
-  return pairs;
-}
-
 export default function History() {
   const { logs, settings, deleteLog } = useStore();
   const nominal = settings!.nominalKwh;
-  const wide = useIsWide();
 
   return (
     <View style={{ flex: 1 }}>
@@ -43,24 +36,11 @@ export default function History() {
         {groupByMonth(logs).map((group) => (
           <View key={group.month} style={{ gap: Spacing.sm }}>
             <Text style={styles.month}>{formatMonth(group.month, true)}</Text>
-            {wide ? (
-              pairsOf(group.logs).map((pair) => (
-                <View key={pair[0].id} style={styles.gridRow}>
-                  {pair.map((log) => (
-                    <View key={log.id} style={[styles.list, styles.gridCell, styles.gridCard]}>
-                      <LogRow log={log} nominalKwh={nominal} onDelete={(l) => deleteLog(l.id)} />
-                    </View>
-                  ))}
-                  {pair.length === 1 && <View style={styles.gridCell} />}
-                </View>
-              ))
-            ) : (
-              <View style={styles.list}>
-                {group.logs.map((log) => (
-                  <LogRow key={log.id} log={log} nominalKwh={nominal} onDelete={(l) => deleteLog(l.id)} />
-                ))}
-              </View>
-            )}
+            <View style={styles.list}>
+              {group.logs.map((log) => (
+                <LogRow key={log.id} log={log} nominalKwh={nominal} onDelete={(l) => deleteLog(l.id)} />
+              ))}
+            </View>
           </View>
         ))}
       </Screen>
@@ -79,10 +59,6 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
-  gridRow: { flexDirection: 'row', gap: Spacing.sm },
-  gridCell: { flex: 1 },
-  // Shorter cards in a row stretch to the taller one; fill the gap with the card colour.
-  gridCard: { backgroundColor: Colors.surface },
   list: {
     borderRadius: Radius.md,
     overflow: 'hidden',

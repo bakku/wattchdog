@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { Logo } from '@/components/logo';
-import { Button, Callout, Card, Columns, Field, Screen, SectionTitle } from '@/components/ui';
+import { Button, Callout, Card, Field, Screen, SectionTitle } from '@/components/ui';
 import { Colors, Spacing } from '@/constants/theme';
 import { LOW_CONFIDENCE_PERCENT, parseNumber, type LogInput } from '@/lib/battery';
 import { pickCsv, shareCsv } from '@/lib/backup';
@@ -153,26 +153,20 @@ export default function SettingsScreen() {
           bigger than it is.
         </Text>
       </Card>
-      <View style={styles.footer}>
-        <Logo size={28} color={Colors.textMuted} />
-        <Text style={styles.footerText}>Wattchdog {Constants.expoConfig?.version}</Text>
-      </View>
     </>
   );
 
   return (
     <Screen>
       <Text style={styles.title}>Settings</Text>
-      <Columns
-        left={
-          <>
-            {carCard}
-            {backupCard}
-            {dangerCard}
-          </>
-        }
-        right={aboutCard}
-      />
+      {carCard}
+      {backupCard}
+      {aboutCard}
+      {dangerCard}
+      <View style={styles.footer}>
+        <Logo size={28} color={Colors.textMuted} />
+        <Text style={styles.footerText}>Wattchdog {Constants.expoConfig?.version}</Text>
+      </View>
     </Screen>
   );
 }

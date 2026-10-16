@@ -64,7 +64,7 @@ A single trip can be noisy. Over weeks and months, the trend shows you how your 
 
 ### Made for foldables and landscape
 
-Unfold your phone or turn it sideways and the dashboard opens up into two columns, with a bigger chart.
+Unfold your phone and the dashboard keeps its one-column layout with a bigger chart. Turn it sideways and the health card becomes a compact band so the chart stays close.
 
 <p align="center">
   <img src="docs/screenshots/foldable.png" alt="Unfolded foldable layout" width="49%">

@@ -10,54 +10,24 @@ import {
   type StyleProp,
   type TextInputProps,
   type ViewStyle,
-  useWindowDimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Colors, MaxContentWidth, MaxWideWidth, Radius, Spacing } from '@/constants/theme';
+import { Colors, MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 
 export type IconName = ComponentProps<typeof Ionicons>['name'];
 
 /** Android's "medium" window class: unfolded foldables, tablets and landscape phones. */
 export const WIDE_BREAKPOINT = 600;
 
-export function useIsWide(): boolean {
-  return useWindowDimensions().width >= WIDE_BREAKPOINT;
-}
-
-/** Every screen shares one content width so switching tabs never shifts the layout. */
-export function useContentWidth(): number {
-  return useIsWide() ? MaxWideWidth : MaxContentWidth;
-}
-
-/** Side by side on wide screens, stacked in the parent's flow otherwise. */
-export function Columns({ left, right, rightFlex = 1 }: { left: ReactNode; right: ReactNode; rightFlex?: number }) {
-  if (!useIsWide()) {
-    return (
-      <>
-        {left}
-        {right}
-      </>
-    );
-  }
-  return (
-    <View style={styles.columns}>
-      <View style={styles.column}>{left}</View>
-      <View style={[styles.column, { flex: rightFlex }]}>{right}</View>
-    </View>
-  );
-}
-
 export function Screen({ children, bottomInset = 120 }: { children: ReactNode; bottomInset?: number }) {
   const insets = useSafeAreaInsets();
-  const maxWidth = useContentWidth();
   return (
     <ScrollView
       style={styles.screen}
       contentContainerStyle={[
         styles.screenContent,
         {
-          maxWidth,
           paddingTop: insets.top + Spacing.lg,
           paddingBottom: bottomInset,
           paddingLeft: insets.left + Spacing.lg,
@@ -162,10 +132,9 @@ const styles = StyleSheet.create({
   screenContent: {
     gap: Spacing.lg,
     width: '100%',
+    maxWidth: MaxContentWidth,
     alignSelf: 'center',
   },
-  columns: { flexDirection: 'row', gap: Spacing.lg, alignItems: 'flex-start' },
-  column: { flex: 1, gap: Spacing.lg },
   card: {
     backgroundColor: Colors.surface,
     borderRadius: Radius.md,

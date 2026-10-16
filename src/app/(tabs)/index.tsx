@@ -8,7 +8,7 @@ import { AddLogFab } from '@/components/fab';
 import { LogRow } from '@/components/log-row';
 import { Logo } from '@/components/logo';
 import { ChartLegend, SohChart } from '@/components/soh-chart';
-import { Card, Columns, Screen, SectionTitle, useIsWide } from '@/components/ui';
+import { Card, Screen, SectionTitle, WIDE_BREAKPOINT } from '@/components/ui';
 import { Colors, Radius, Spacing } from '@/constants/theme';
 import {
   averageEfficiency,
@@ -35,8 +35,9 @@ export default function Dashboard() {
   const headline = headlineCapacity(logs);
   const avgEfficiency = averageEfficiency(logs);
   const totalKm = logs.reduce((sum, l) => sum + l.km, 0);
-  const wide = useIsWide();
-  const { height: windowHeight } = useWindowDimensions();
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+  // Unfolded foldables and tablets have room for a taller plot; phones and landscape keep it short.
+  const roomy = windowWidth >= WIDE_BREAKPOINT && windowHeight >= WIDE_BREAKPOINT;
 
   const hero = headline ? (
     <HeroCard
@@ -81,7 +82,7 @@ export default function Dashboard() {
           ))}
         </View>
       </View>
-      <SohChart logs={logs} nominalKwh={nominal} range={range} height={wide ? Math.min(Math.max(windowHeight - 330, 200), 360) : 230} />
+      <SohChart logs={logs} nominalKwh={nominal} range={range} height={roomy ? 300 : 230} />
       <ChartLegend />
     </Card>
   );
@@ -97,7 +98,7 @@ export default function Dashboard() {
         Recent logs
       </SectionTitle>
       <View style={styles.list}>
-        {logs.slice(0, wide ? 4 : 3).map((log) => (
+        {logs.slice(0, 3).map((log) => (
           <LogRow key={log.id} log={log} nominalKwh={nominal} />
         ))}
       </View>
@@ -118,22 +119,6 @@ export default function Dashboard() {
 
         {logs.length === 0 ? (
           hero
-        ) : wide ? (
-          <Columns
-            left={
-              <>
-                {hero}
-                {recent}
-              </>
-            }
-            right={
-              <>
-                {tiles}
-                {chart}
-              </>
-            }
-            rightFlex={1.25}
-          />
         ) : (
           <>
             {hero}
@@ -149,8 +134,10 @@ export default function Dashboard() {
 }
 
 function HeroCard({ soh, capacity, nominal, caption }: { soh: number; capacity: number; nominal: number; caption: string }) {
-  // Landscape phones are short: shrink the hero so the chart stays in reach.
-  const compact = useWindowDimensions().height < 500;
+  // Landscape phones are short: lay the hero out as a band so the chart stays in reach.
+  const { width, height } = useWindowDimensions();
+  const compact = height < 500;
+  const band = compact && width >= WIDE_BREAKPOINT;
   return (
     <View style={styles.hero}>
       <LinearGradient
@@ -159,20 +146,26 @@ function HeroCard({ soh, capacity, nominal, caption }: { soh: number; capacity: 
         end={{ x: 1, y: 1 }}
         style={StyleSheet.absoluteFill}
       />
-      <Text style={styles.heroLabel}>Battery health</Text>
-      <View style={styles.heroValueRow}>
-        <Text style={[styles.heroValue, compact && styles.heroValueCompact]}>{fixed(soh)}</Text>
-        <Text style={styles.heroUnit}>%</Text>
+      <View style={[styles.heroBody, band && styles.heroBand]}>
+        <View style={styles.heroBody}>
+          <Text style={styles.heroLabel}>Battery health</Text>
+          <View style={styles.heroValueRow}>
+            <Text style={[styles.heroValue, compact && styles.heroValueCompact]}>{fixed(soh)}</Text>
+            <Text style={styles.heroUnit}>%</Text>
+          </View>
+        </View>
+        <View style={[styles.heroBody, band && styles.heroBandDetail]}>
+          <Text style={styles.heroSub}>
+            ≈ <Text style={styles.heroSubStrong}>{fixed(capacity)} kWh</Text> usable of {fixed(nominal)}{'\u00A0'}kWh
+          </Text>
+          <View style={styles.meterTrack}>
+            <View
+              style={[styles.meterFill, { width: `${Math.min(Math.max(soh, 0), 100)}%`, backgroundColor: meterColor(soh) }]}
+            />
+          </View>
+          <Text style={styles.heroCaption}>{caption}</Text>
+        </View>
       </View>
-      <Text style={styles.heroSub}>
-        ≈ <Text style={styles.heroSubStrong}>{fixed(capacity)} kWh</Text> usable of {fixed(nominal)}{'\u00A0'}kWh
-      </Text>
-      <View style={styles.meterTrack}>
-        <View
-          style={[styles.meterFill, { width: `${Math.min(Math.max(soh, 0), 100)}%`, backgroundColor: meterColor(soh) }]}
-        />
-      </View>
-      <Text style={styles.heroCaption}>{caption}</Text>
     </View>
   );
 }
@@ -235,6 +228,9 @@ const styles = StyleSheet.create({
     textShadowRadius: 24,
   },
   heroValueCompact: { fontSize: 52, lineHeight: 60, letterSpacing: -2 },
+  heroBody: { gap: Spacing.xs },
+  heroBand: { flexDirection: 'row', alignItems: 'center', gap: Spacing.xl },
+  heroBandDetail: { flex: 1 },
   heroUnit: { color: Colors.accent, fontSize: 30, fontWeight: '700', marginTop: 12, marginLeft: 4 },
   heroSub: { color: Colors.textSecondary, fontSize: 15 },
   heroSubStrong: { color: Colors.text, fontWeight: '700' },

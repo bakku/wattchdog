@@ -32,7 +32,5 @@ export const Radius = {
   pill: 999,
 } as const;
 
-/** Forms and single-column screens stay phone-width on big screens. */
-export const MaxContentWidth = 560;
-/** Two-column dashboard on unfolded foldables and in landscape. */
-export const MaxWideWidth = 1180;
+/** Every screen is one column, capped so it stays app-like on foldables and in landscape. */
+export const MaxContentWidth = 680;

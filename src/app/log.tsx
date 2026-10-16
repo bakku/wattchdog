@@ -5,8 +5,8 @@ import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Button, Callout, Columns, Field, useContentWidth } from '@/components/ui';
-import { Colors, Radius, Spacing } from '@/constants/theme';
+import { Button, Callout, Field } from '@/components/ui';
+import { Colors, MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import {
   efficiency,
   estimateCapacity,
@@ -27,7 +27,6 @@ export default function LogScreen() {
   const { logs, settings, addLog, updateLog, deleteLog } = useStore();
   const existing = id ? logs.find((l) => l.id === id) : undefined;
   const insets = useSafeAreaInsets();
-  const maxWidth = useContentWidth();
 
   const [openedAt] = useState(Date.now);
   const [date, setDate] = useState(existing?.date ?? openedAt);
@@ -70,7 +69,6 @@ export default function LogScreen() {
         contentContainerStyle={[
           styles.content,
           {
-            maxWidth,
             paddingTop: Spacing.lg + (Platform.OS === 'android' ? insets.top : 0),
             paddingBottom: insets.bottom + Spacing.xl,
             paddingLeft: insets.left + Spacing.lg,
@@ -85,102 +83,93 @@ export default function LogScreen() {
           </Pressable>
         </View>
 
-        <Columns
-          left={
-            <>
-              <View style={styles.dateRow}>
-                <Pressable
-                  accessibilityLabel="Previous day"
-                  onPress={() => setDate(date - DAY)}
-                  style={styles.dateButton}>
-                  <Ionicons name="chevron-back" size={20} color={Colors.text} />
-                </Pressable>
-                <View style={styles.dateLabel}>
-                  <Ionicons name="calendar-outline" size={16} color={Colors.textSecondary} />
-                  <Text style={styles.dateText}>{formatDay(date)}</Text>
-                </View>
-                <Pressable
-                  accessibilityLabel="Next day"
-                  disabled={!canGoForward}
-                  onPress={() => setDate(date + DAY)}
-                  style={[styles.dateButton, !canGoForward && { opacity: 0.3 }]}>
-                  <Ionicons name="chevron-forward" size={20} color={Colors.text} />
-                </Pressable>
-              </View>
+        <View style={styles.dateRow}>
+          <Pressable
+            accessibilityLabel="Previous day"
+            onPress={() => setDate(date - DAY)}
+            style={styles.dateButton}>
+            <Ionicons name="chevron-back" size={20} color={Colors.text} />
+          </Pressable>
+          <View style={styles.dateLabel}>
+            <Ionicons name="calendar-outline" size={16} color={Colors.textSecondary} />
+            <Text style={styles.dateText}>{formatDay(date)}</Text>
+          </View>
+          <Pressable
+            accessibilityLabel="Next day"
+            disabled={!canGoForward}
+            onPress={() => setDate(date + DAY)}
+            style={[styles.dateButton, !canGoForward && { opacity: 0.3 }]}>
+            <Ionicons name="chevron-forward" size={20} color={Colors.text} />
+          </Pressable>
+        </View>
 
-              <Field
-                label="Energy used"
-                unit="kWh"
-                value={kwh}
-                onChangeText={setKwh}
-                keyboardType="decimal-pad"
-                placeholder="15.2"
-                autoFocus={!existing}
-                error={errorFor('kwh', kwh)}
-              />
-              <View style={styles.pair}>
-                <Field
-                  style={{ flex: 1 }}
-                  label="Distance"
-                  unit="km"
-                  value={km}
-                  onChangeText={setKm}
-                  keyboardType="decimal-pad"
-                  placeholder="98"
-                  error={errorFor('km', km)}
-                />
-                <Field
-                  style={{ flex: 1 }}
-                  label="Charge used"
-                  unit="%"
-                  value={percent}
-                  onChangeText={setPercent}
-                  keyboardType="decimal-pad"
-                  placeholder="21"
-                  error={errorFor('percent', percent)}
-                />
-              </View>
-            </>
-          }
-          right={
-            <>
-              <View style={styles.preview}>
-                <PreviewStat label="Capacity" value={capacity ? fixed(capacity) : '–'} unit="kWh" />
-                <View style={styles.previewDivider} />
-                <PreviewStat label="Health" value={capacity ? fixed(stateOfHealth(capacity, nominal)) : '–'} unit="%" />
-                <View style={styles.previewDivider} />
-                <PreviewStat label="Efficiency" value={valid ? fixed(efficiency(values)) : '–'} unit="kWh/100 km" />
-              </View>
-
-              {valid && isLowConfidence(values) && (
-                <Callout icon="information-circle" tone="info">
-                  Under {LOW_CONFIDENCE_PERCENT} % used, rounding of the charge display makes this estimate rough. It
-                  will still be saved, but count less in your trend.
-                </Callout>
-              )}
-              {capacity !== null && isImplausible(capacity, nominal) && (
-                <Callout icon="warning" tone="warning">
-                  {fixed(capacity)} kWh is far from your nominal {fixed(nominal)} kWh. Double-check the numbers. You can
-                  still save if they’re right.
-                </Callout>
-              )}
-
-              <Field
-                label="Note (optional)"
-                text
-                value={note}
-                onChangeText={setNote}
-                placeholder="Motorway, 2 °C, heating on"
-                style={{ marginTop: Spacing.xs }}
-              />
-
-              <View style={{ gap: Spacing.md, marginTop: Spacing.sm }}>
-                <Button label={existing ? 'Save changes' : 'Save log'} icon="checkmark" onPress={save} />
-                {existing && <Button label="Delete log" icon="trash-outline" variant="danger" onPress={remove} />}
-              </View>
-            </>
-          }
+        <Field
+          label="Energy used"
+          unit="kWh"
+          value={kwh}
+          onChangeText={setKwh}
+          keyboardType="decimal-pad"
+          placeholder="15.2"
+          autoFocus={!existing}
+          error={errorFor('kwh', kwh)}
         />
+        <View style={styles.pair}>
+          <Field
+            style={{ flex: 1 }}
+            label="Distance"
+            unit="km"
+            value={km}
+            onChangeText={setKm}
+            keyboardType="decimal-pad"
+            placeholder="98"
+            error={errorFor('km', km)}
+          />
+          <Field
+            style={{ flex: 1 }}
+            label="Charge used"
+            unit="%"
+            value={percent}
+            onChangeText={setPercent}
+            keyboardType="decimal-pad"
+            placeholder="21"
+            error={errorFor('percent', percent)}
+          />
+        </View>
+
+        <View style={styles.preview}>
+          <PreviewStat label="Capacity" value={capacity ? fixed(capacity) : '–'} unit="kWh" />
+          <View style={styles.previewDivider} />
+          <PreviewStat label="Health" value={capacity ? fixed(stateOfHealth(capacity, nominal)) : '–'} unit="%" />
+          <View style={styles.previewDivider} />
+          <PreviewStat label="Efficiency" value={valid ? fixed(efficiency(values)) : '–'} unit="kWh/100 km" />
+        </View>
+
+        {valid && isLowConfidence(values) && (
+          <Callout icon="information-circle" tone="info">
+            Under {LOW_CONFIDENCE_PERCENT} % used, rounding of the charge display makes this estimate rough. It will
+            still be saved, but count less in your trend.
+          </Callout>
+        )}
+        {capacity !== null && isImplausible(capacity, nominal) && (
+          <Callout icon="warning" tone="warning">
+            {fixed(capacity)} kWh is far from your nominal {fixed(nominal)} kWh. Double-check the numbers. You can
+            still save if they’re right.
+          </Callout>
+        )}
+
+        <Field
+          label="Note (optional)"
+          text
+          value={note}
+          onChangeText={setNote}
+          placeholder="Motorway, 2 °C, heating on"
+          style={{ marginTop: Spacing.xs }}
+        />
+
+        <View style={{ gap: Spacing.md, marginTop: Spacing.sm }}>
+          <Button label={existing ? 'Save changes' : 'Save log'} icon="checkmark" onPress={save} />
+          {existing && <Button label="Delete log" icon="trash-outline" variant="danger" onPress={remove} />}
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -201,6 +190,7 @@ const styles = StyleSheet.create({
   content: {
     gap: Spacing.lg,
     width: '100%',
+    maxWidth: MaxContentWidth,
     alignSelf: 'center',
   },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
